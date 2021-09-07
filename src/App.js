@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Route, Switch } from 'react-router-dom';
 import {
   // createGlobalStyle,
-  ThemeProvider
+  ThemeProvider,
 } from 'styled-components';
 
 import Header from './components/Layout/Header';
@@ -47,7 +48,14 @@ function App() {
         {cartIsShown && <Cart onClose={hideCartHandler} />}
         <Header onShowCart={showCartHandler} />
         <main>
-          <Meals />
+          <Switch>
+          <Route path='/food-order' exact>
+            <Meals />
+            </Route>
+            <Route path='/'>
+              <h1 style={{textAlign: 'center', color: 'white'}}>Page not Found!</h1>
+            </Route>
+          </Switch>
         </main>
       </ThemeProvider>
     </CartProvider>

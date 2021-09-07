@@ -1,8 +1,9 @@
-import { useContext, useState } from 'react';
+import { Fragment, useContext, useState } from 'react';
 import styled from 'styled-components';
 
 import CartContext from '../../store/cart-context';
 import Modal from '../UI/Modal';
+import { Spinner } from '../UI/Spinner';
 import CartItem from './CartItem';
 import CheckOut from './Checkout';
 
@@ -55,7 +56,9 @@ const Action = styled.div`
 
 const Cart = (props) => {
   const [isCheckout, setIsCheckout] = useState(false);
-  const { items, totalAmount, addItem, removeItem } =
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [didSubmit, setDidSubmit] = useState(false);
+  const { items, totalAmount, addItem, removeItem, clearCart } =
     useContext(CartContext);
 
   const hasItem = items.length > 0;
@@ -72,14 +75,21 @@ const Cart = (props) => {
     setIsCheckout(true);
   };
 
-  const submitOrderHandler = (userData) => {
-    fetch('https://twitter-clone-cf72b-default-rtdb.firebaseio.com/orders.json', {
-      method: 'POST',
-      body: JSON.stringify({
-        user: userData,
-        orderItems: items
-      })
-    })
+  const submitOrderHandler = async (userData) => {
+    setIsSubmitting(true);
+    await fetch(
+      'https://twitter-clone-cf72b-default-rtdb.firebaseio.com/orders.json',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          user: userData,
+          orderItems: items,
+        }),
+      }
+    );
+    setIsSubmitting(false);
+    setDidSubmit(true);
+    clearCart();
   };
 
   const cartItems = (
@@ -107,8 +117,9 @@ const Cart = (props) => {
       )}
     </Action>
   );
-  return (
-    <Modal onClose={props.onClose}>
+
+  const cartModalContent = (
+    <Fragment>
       {cartItems}
       <Total>
         <span>Total Amount</span>
@@ -122,6 +133,16 @@ const Cart = (props) => {
       ) : (
         modalActions
       )}
+    </Fragment>
+  );
+
+  const didSubmitModalContent = <p>Successfully sent the order!</p>;
+
+  return (
+    <Modal onClose={props.onClose}>
+      {!isSubmitting && !didSubmit && cartModalContent}
+      {isSubmitting && <Spinner />}
+      {!isSubmitting && didSubmit && didSubmitModalContent}
     </Modal>
   );
 };
